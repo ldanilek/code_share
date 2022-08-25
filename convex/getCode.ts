@@ -1,5 +1,5 @@
 import { query } from './_generated/server'
-import { INITIAL_CODE, mergeChange } from '../merge';
+import { INITIAL_CODE, mergeChange, offsetPosition } from '../merge';
 
 export default query(async ({ db }): Promise<string> => {
   let code = INITIAL_CODE;
@@ -8,10 +8,8 @@ export default query(async ({ db }): Promise<string> => {
   for (let change of changes) {
     code = mergeChange(
       code, 
-      change.fromA, 
-      change.toA, 
-      change.fromB,
-      change.toB, 
+      offsetPosition(change.fromA, change.parentRevision, change.revision-1, changes),
+      offsetPosition(change.toA, change.parentRevision, change.revision-1, changes), 
       change.inserted,
     );
   }

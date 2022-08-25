@@ -12,6 +12,9 @@ import { INITIAL_CODE, mergeChange } from '../merge'
 
 const Home: NextPage = () => {
   const code = useQuery('getCode') ?? INITIAL_CODE;
+  const revision = useQuery('getRevision') ?? 0;
+  const cursorKey = 'lee';
+  const cursor = useQuery('getCursor', cursorKey) ?? 0;
   const typeCode = useMutation('typeCode').withOptimisticUpdate(
     (localStore, fromA, toA, fromB, toB, inserted) => {
       let localCode = localStore.getQuery('getCode', []) ?? INITIAL_CODE;
@@ -25,7 +28,6 @@ const Home: NextPage = () => {
     }
     return lines.join('');
   };
-  const [cursor, setCursor] = useState(0);
   const onChange = (value: string, viewUpdate: ViewUpdate) => {
     if (value === code) {
       // new text is the same as what the server thinks it should be.
@@ -33,7 +35,7 @@ const Home: NextPage = () => {
       return;
     }
     viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-      typeCode(fromA, toA, fromB, toB, textToString(inserted));
+      typeCode(fromA, toA, fromB, toB, textToString(inserted), revision);
     });
   };
   const onUpdate = (viewUpdate: ViewUpdate) => {

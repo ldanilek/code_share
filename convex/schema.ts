@@ -7,5 +7,12 @@ export default defineSchema({
     fromB: s.number(),
     toB: s.number(),
     inserted: s.string(),
+    parentRevision: s.number(),
+    revision: s.number(),
+  }),
+  cursors: defineTable({
+    cursorKey: s.string(),
+    position: s.number(),
+    parentRevision: s.number(),
   }),
 });
