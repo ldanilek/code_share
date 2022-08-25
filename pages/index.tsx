@@ -8,11 +8,16 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ViewUpdate } from '@codemirror/view';
 import { Text } from '@codemirror/state';
-import { INITIAL_CODE } from '../merge'
+import { INITIAL_CODE, mergeChange } from '../merge'
 
 const Home: NextPage = () => {
   const code = useQuery('getCode') ?? INITIAL_CODE;
-  const typeCode = useMutation('typeCode');
+  const typeCode = useMutation('typeCode').withOptimisticUpdate(
+    (localStore, fromA, toA, fromB, toB, inserted) => {
+      let localCode = localStore.getQuery('getCode', []) ?? INITIAL_CODE;
+      let newCode = mergeChange(localCode, fromA, toA, fromB, toB, inserted);
+      localStore.setQuery('getCode', [], newCode);
+    });
   const textToString = (t: Text): string => {
     let lines = [];
     for (let line of t) {
@@ -21,6 +26,11 @@ const Home: NextPage = () => {
     return lines.join('');
   };
   const onChange = (value: string, viewUpdate: ViewUpdate) => {
+    if (value === code) {
+      // new text is the same as what the server thinks it should be.
+      // skip sending mutations to avoid feedback loops.
+      return;
+    }
     viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
       typeCode(fromA, toA, fromB, toB, textToString(inserted));
     });
