@@ -6,6 +6,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@uiw/react-codemirror": "^4.11.6",
+    "@codemirror/lang-javascript": "latest",
+    "@codemirror/view": "latest",
     "convex": "latest",
     "next": "latest",
     "react": "^18.2.0",

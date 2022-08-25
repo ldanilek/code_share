@@ -3,12 +3,28 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import { useQuery, useMutation } from '../convex/_generated/react'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { ViewUpdate } from '@codemirror/view';
+import { Text } from '@codemirror/state';
+import { INITIAL_CODE } from '../merge'
 
 const Home: NextPage = () => {
-  const counter = useQuery('getCounter', 'clicks') ?? 0
-  const increment = useMutation('incrementCounter')
-  const incrementByOne = useCallback(() => increment('clicks', 1), [increment])
+  const code = useQuery('getCode') ?? INITIAL_CODE;
+  const typeCode = useMutation('typeCode');
+  const textToString = (t: Text): string => {
+    let lines = [];
+    for (let line of t) {
+      lines.push(line);
+    }
+    return lines.join('');
+  };
+  const onChange = (value: string, viewUpdate: ViewUpdate) => {
+    viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+      typeCode(fromA, toA, fromB, toB, textToString(inserted));
+    });
+  };
 
   return (
     <div className={styles.container}>
@@ -19,17 +35,14 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js</a> with{' '}
-          <a href="https://convex.dev">Convex</a>
-        </h1>
-
-        <p className={styles.description}>
-          {"Here's the counter:"} {counter}
-        </p>
-        <button className={styles.button} onClick={incrementByOne}>
-          Add One!
-        </button>
+        <p>Magic Code Editor</p>
+        <CodeMirror
+          value={code}
+          height="200px"
+          width="400px"
+          extensions={[javascript({ jsx: true })]}
+          onChange={onChange}
+        />
       </main>
 
       <footer className={styles.footer}>

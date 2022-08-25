@@ -9,8 +9,8 @@
  * @module
  */
 
-import type getCounter from "../getCounter";
-import type incrementCounter from "../incrementCounter";
+import type getCode from "../getCode";
+import type typeCode from "../typeCode";
 import type { OptimisticLocalStore as GenericOptimisticLocalStore } from "convex/browser";
 import type { ClientMutation, ClientQuery } from "convex/server";
 
@@ -25,10 +25,10 @@ import type { ClientMutation, ClientQuery } from "convex/server";
  */
 export type ConvexAPI = {
   queries: {
-    getCounter: ClientQuery<typeof getCounter>;
+    getCode: ClientQuery<typeof getCode>;
   };
   mutations: {
-    incrementCounter: ClientMutation<typeof incrementCounter>;
+    typeCode: ClientMutation<typeof typeCode>;
   };
 };
 
