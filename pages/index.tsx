@@ -3,11 +3,11 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import { useQuery, useMutation } from '../convex/_generated/react'
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ViewUpdate } from '@codemirror/view';
-import { Text } from '@codemirror/state';
+import { Text, EditorSelection, Transaction } from '@codemirror/state';
 import { INITIAL_CODE, mergeChange } from '../merge'
 
 const Home: NextPage = () => {
@@ -25,6 +25,7 @@ const Home: NextPage = () => {
     }
     return lines.join('');
   };
+  const [cursor, setCursor] = useState(0);
   const onChange = (value: string, viewUpdate: ViewUpdate) => {
     if (value === code) {
       // new text is the same as what the server thinks it should be.
@@ -35,6 +36,23 @@ const Home: NextPage = () => {
       typeCode(fromA, toA, fromB, toB, textToString(inserted));
     });
   };
+  const onUpdate = (viewUpdate: ViewUpdate) => {
+    const state = viewUpdate.state;
+    const selection = state.selection.main;
+    if (cursor !== selection.from) {
+      console.log(`setting cursor to ${selection.from} - ${selection.to}`);
+      // HACK: when the `value` changes due to a server-side change,
+      // cursor gets set back to 0. So we put it back where it was.
+      if (selection.from === 0 && selection.to === 0) {
+        viewUpdate.view.dispatch({selection: EditorSelection.single(cursor, cursor)});
+      } else {
+        setCursor(selection.from);
+      }
+    }
+  };
+  useEffect(() => {
+
+  }, [cursor])
 
   return (
     <div className={styles.container}>
@@ -52,6 +70,7 @@ const Home: NextPage = () => {
           width="400px"
           extensions={[javascript({ jsx: true })]}
           onChange={onChange}
+          onUpdate={onUpdate}
         />
       </main>
 
