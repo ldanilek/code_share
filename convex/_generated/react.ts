@@ -9,6 +9,7 @@
  * @module
  */
 
+import type countActive from "../countActive";
 import type getCode from "../getCode";
 import type getCursor from "../getCursor";
 import type getRevision from "../getRevision";
@@ -28,6 +29,7 @@ import type { ClientMutation, ClientQuery } from "convex/server";
  */
 export type ConvexAPI = {
   queries: {
+    countActive: ClientQuery<typeof countActive>;
     getCode: ClientQuery<typeof getCode>;
     getCursor: ClientQuery<typeof getCursor>;
     getRevision: ClientQuery<typeof getRevision>;

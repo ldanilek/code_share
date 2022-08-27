@@ -9,7 +9,8 @@ export default mutation(
     revision: number,
     clientRevision: number,
   ) => {
-    let cursor = await db.table('cursors').filter(q => q.eq(q.field('cursorKey'), cursorKey)).first();
+    let cursor = await db.table('cursors').index('by_key')
+        .range(q => q.eq('cursorKey', cursorKey)).first();
     if (cursor === null) {
         db.insert('cursors', {
             parentRevision: revision,
@@ -17,14 +18,18 @@ export default mutation(
             position,
             toPosition,
             clientRevision,
+            lastSeen: new Date().getTime(),
         });
         return;
     }
-    db.patch(cursor._id, {
+    // use replace so typechecker will warn on new fields
+    db.replace(cursor._id, {
         parentRevision: revision,
+        cursorKey,
         position,
         toPosition,
         clientRevision,
+        lastSeen: new Date().getTime(),
     });
   }
 )

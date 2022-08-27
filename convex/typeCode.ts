@@ -4,7 +4,7 @@ import { mutation } from './_generated/server'
 export default mutation(
   async ({ db }, 
     fromA: number, 
-    toA: number, 
+    toA: number,
     cursorKey: string, 
     clientRevision: number,
     inserted: string, 

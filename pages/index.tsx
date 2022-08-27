@@ -15,6 +15,8 @@ const Home: NextPage = () => {
   const revision = useQuery('getRevision') ?? 0;
   const [cursorKey, _] = useState(Math.random().toString());
   const cursor = useQuery('getCursor', cursorKey) ?? [0, 0];
+  const [activeTime, setActiveTime] = useState(new Date().getTime());
+  const countActive = useQuery('countActive', activeTime) ?? 1;
   const setCursor = useMutation('setCursor').withOptimisticUpdate(
     (localStore, cursorKey, position, toPosition, revision, clientRevision) => {
       localStore.setQuery('getCursor', [cursorKey], [position, toPosition]);
@@ -78,6 +80,19 @@ const Home: NextPage = () => {
       //}
     }
   };
+  /// Periodically set cursor to indicate we are active.
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+    const range = editor.state.selection.main;
+    setCursor(cursorKey, range.from, range.to, revision, clientRevision);
+  }, [activeTime, editor]);
+  useEffect(() => {
+    setTimeout(() => {
+      setActiveTime(new Date().getTime());
+    }, 5 * 1000);
+  }, [activeTime]);
 
   return (
     <div className={styles.container}>
@@ -89,6 +104,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <p>Magic Code Editor</p>
+        <p>{countActive} current editor{countActive === 1 ? '' : 's'}</p>
         <CodeMirror
           className={styles.editor}
           height="400px"
