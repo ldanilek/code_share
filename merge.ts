@@ -62,6 +62,22 @@ export const offsetForChange = (
     );
 }
 
+export const offsetForCursor = (
+    position: number,
+    cursor: Document<'cursors'>,
+    changes: Document<'changes'>[],
+    currentRevision: number,
+): number => {
+    return offsetPosition(
+        position,
+        cursor.parentRevision,
+        currentRevision,
+        cursor.cursorKey,
+        cursor.clientRevision,
+        changes,
+    );
+}
+
 export const lastRevision = async (
     db: DatabaseReader,
 ): Promise<number> => {

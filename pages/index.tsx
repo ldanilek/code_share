@@ -14,10 +14,10 @@ const Home: NextPage = () => {
   const code = useQuery('getCode') ?? INITIAL_CODE;
   const revision = useQuery('getRevision') ?? 0;
   const [cursorKey, _] = useState(Math.random().toString());
-  const cursor = useQuery('getCursor', cursorKey) ?? 0;
+  const cursor = useQuery('getCursor', cursorKey) ?? [0, 0];
   const setCursor = useMutation('setCursor').withOptimisticUpdate(
-    (localStore, cursorKey, position, revision, clientRevision) => {
-      localStore.setQuery('getCursor', [cursorKey], position);
+    (localStore, cursorKey, position, toPosition, revision, clientRevision) => {
+      localStore.setQuery('getCursor', [cursorKey], [position, toPosition]);
     }
   );
   const [clientRevision, setClientRevision] = useState(0);
@@ -45,10 +45,12 @@ const Home: NextPage = () => {
       console.log(`server code changed`);
       editor.dispatch({changes: editor.state.changes({from: 0, to: currentDoc.length, insert: code})});
     }
-    if (editor.state.selection.main.from !== cursor) {
-      console.log(`server-side cursor move to ${cursor}`);
-      const localCursor = Math.min(cursor, currentDoc.length);
-      editor.dispatch({selection: EditorSelection.single(localCursor, localCursor)});
+    const currentRange = editor.state.selection.main;
+    if (currentRange.from !== cursor[0] && currentRange.to !== cursor[1]) {
+      // console.log(`server-side cursor move to ${cursor}`);
+      const localCursor = Math.min(cursor[0], currentDoc.length);
+      const localCursorTo = Math.min(cursor[1], currentDoc.length);
+      editor.dispatch({selection: EditorSelection.single(localCursor, localCursorTo)});
     }
   }, [code, cursor, editor]);
 
@@ -67,9 +69,9 @@ const Home: NextPage = () => {
       });
       const selection = transaction.newSelection;
       const range = selection.main;
-      if (cursor !== range.from) {
-        setCursor(cursorKey, range.from, revision, clientRevision);
-      }
+      //if (cursor[0] !== range.from && cursor[1] !== range.to) {
+      setCursor(cursorKey, range.from, range.to, revision, clientRevision);
+      //}
     }
   };
 

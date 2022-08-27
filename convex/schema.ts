@@ -13,6 +13,7 @@ export default defineSchema({
   cursors: defineTable({
     cursorKey: s.string(),
     position: s.number(),
+    toPosition: s.number(),
     parentRevision: s.number(),
     clientRevision: s.number(),
   }),
