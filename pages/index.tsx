@@ -6,19 +6,26 @@ import { useQuery, useMutation } from '../convex/_generated/react'
 import { useCallback, useEffect, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { ViewUpdate } from '@codemirror/view';
+import { EditorView, ViewUpdate } from '@codemirror/view';
 import { Text, EditorSelection, Transaction } from '@codemirror/state';
 import { INITIAL_CODE, mergeChange } from '../merge'
 
 const Home: NextPage = () => {
   const code = useQuery('getCode') ?? INITIAL_CODE;
   const revision = useQuery('getRevision') ?? 0;
-  const cursorKey = 'lee';
+  const [cursorKey, _] = useState(Math.random().toString());
   const cursor = useQuery('getCursor', cursorKey) ?? 0;
+  const setCursor = useMutation('setCursor').withOptimisticUpdate(
+    (localStore, cursorKey, position, revision, clientRevision) => {
+      localStore.setQuery('getCursor', [cursorKey], position);
+    }
+  );
+  const [clientRevision, setClientRevision] = useState(0);
+  const [editor, setEditor] = useState<EditorView | null>(null);
   const typeCode = useMutation('typeCode').withOptimisticUpdate(
-    (localStore, fromA, toA, fromB, toB, inserted) => {
+    (localStore, fromA, toA, cursorKey, clientRevision, inserted) => {
       let localCode = localStore.getQuery('getCode', []) ?? INITIAL_CODE;
-      let newCode = mergeChange(localCode, fromA, toA, fromB, toB, inserted);
+      let newCode = mergeChange(localCode, fromA, toA, inserted);
       localStore.setQuery('getCode', [], newCode);
     });
   const textToString = (t: Text): string => {
@@ -28,33 +35,43 @@ const Home: NextPage = () => {
     }
     return lines.join('');
   };
-  const onChange = (value: string, viewUpdate: ViewUpdate) => {
-    if (value === code) {
-      // new text is the same as what the server thinks it should be.
-      // skip sending mutations to avoid feedback loops.
+  /// Respond to server change by updating editor.
+  useEffect(() => {
+    if (!editor) {
       return;
     }
-    viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-      typeCode(fromA, toA, fromB, toB, textToString(inserted), revision);
-    });
-  };
+    const currentDoc = textToString(editor.state.doc);
+    if (currentDoc !== code) {
+      console.log(`server code changed`);
+      editor.dispatch({changes: editor.state.changes({from: 0, to: currentDoc.length, insert: code})});
+    }
+    if (editor.state.selection.main.from !== cursor) {
+      console.log(`server-side cursor move to ${cursor}`);
+      const localCursor = Math.min(cursor, currentDoc.length);
+      editor.dispatch({selection: EditorSelection.single(localCursor, localCursor)});
+    }
+  }, [code, cursor, editor]);
+
+  /// Respond to user action by updating server.
   const onUpdate = (viewUpdate: ViewUpdate) => {
-    const state = viewUpdate.state;
-    const selection = state.selection.main;
-    if (cursor !== selection.from) {
-      console.log(`setting cursor to ${selection.from} - ${selection.to}`);
-      // HACK: when the `value` changes due to a server-side change,
-      // cursor gets set back to 0. So we put it back where it was.
-      if (selection.from === 0 && selection.to === 0) {
-        viewUpdate.view.dispatch({selection: EditorSelection.single(cursor, cursor)});
-      } else {
-        setCursor(selection.from);
+    for (let transaction of viewUpdate.transactions) {
+      if (!transaction.isUserEvent("select") 
+      && !transaction.isUserEvent("input") 
+      && !transaction.isUserEvent("delete")
+      && !transaction.isUserEvent("move")) {
+        continue;
+      }
+      transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+        typeCode(fromA, toA, cursorKey, clientRevision, textToString(inserted), revision);
+        setClientRevision(clientRevision+1);
+      });
+      const selection = transaction.newSelection;
+      const range = selection.main;
+      if (cursor !== range.from) {
+        setCursor(cursorKey, range.from, revision, clientRevision);
       }
     }
   };
-  useEffect(() => {
-
-  }, [cursor])
 
   return (
     <div className={styles.container}>
@@ -67,12 +84,12 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <p>Magic Code Editor</p>
         <CodeMirror
-          value={code}
           height="200px"
           width="400px"
           extensions={[javascript({ jsx: true })]}
-          onChange={onChange}
+          //onChange={onChange}
           onUpdate={onUpdate}
+          onCreateEditor={(view) => setEditor(view)}
         />
       </main>
 

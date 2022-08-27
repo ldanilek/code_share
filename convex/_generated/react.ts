@@ -12,6 +12,7 @@
 import type getCode from "../getCode";
 import type getCursor from "../getCursor";
 import type getRevision from "../getRevision";
+import type setCursor from "../setCursor";
 import type typeCode from "../typeCode";
 import type { OptimisticLocalStore as GenericOptimisticLocalStore } from "convex/browser";
 import type { ClientMutation, ClientQuery } from "convex/server";
@@ -32,6 +33,7 @@ export type ConvexAPI = {
     getRevision: ClientQuery<typeof getRevision>;
   };
   mutations: {
+    setCursor: ClientMutation<typeof setCursor>;
     typeCode: ClientMutation<typeof typeCode>;
   };
 };

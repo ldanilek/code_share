@@ -5,8 +5,8 @@ export default mutation(
   async ({ db }, 
     fromA: number, 
     toA: number, 
-    fromB: number, 
-    toB: number, 
+    cursorKey: string, 
+    clientRevision: number,
     inserted: string, 
     revision: number,
   ) => {
@@ -14,8 +14,8 @@ export default mutation(
     db.insert('changes', {
         fromA,
         toA,
-        fromB,
-        toB,
+        cursorKey,
+        clientRevision,
         inserted,
         parentRevision: revision,
         revision: nextRevision,

@@ -4,8 +4,8 @@ export default defineSchema({
   changes: defineTable({
     fromA: s.number(),
     toA: s.number(),
-    fromB: s.number(),
-    toB: s.number(),
+    cursorKey: s.string(),
+    clientRevision: s.number(),
     inserted: s.string(),
     parentRevision: s.number(),
     revision: s.number(),
@@ -14,5 +14,6 @@ export default defineSchema({
     cursorKey: s.string(),
     position: s.number(),
     parentRevision: s.number(),
+    clientRevision: s.number(),
   }),
 });
