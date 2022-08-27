@@ -131,7 +131,7 @@ const Home: NextPage = () => {
       </main>
 
       <footer className={styles.footer}>
-        <a
+        <div><a
           href="https://www.convex.dev/"
           target="_blank"
           rel="noopener noreferrer"
@@ -141,6 +141,10 @@ const Home: NextPage = () => {
             <Image src="/convex.svg" alt="Convex Logo" width={90} height={18} />
           </span>
         </a>
+        <a href="https://github.com/ldanilek/code_share">
+          Open sourced&nbsp;<span className={styles.footerLink}>on Github</span>
+        </a>
+        </div>
       </footer>
     </div>
   )
