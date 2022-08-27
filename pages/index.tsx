@@ -42,12 +42,15 @@ const Home: NextPage = () => {
     }
     const currentDoc = textToString(editor.state.doc);
     if (currentDoc !== code) {
-      editor.dispatch({changes: editor.state.changes({from: 0, to: currentDoc.length, insert: code})});
+      editor.dispatch({changes: editor.state.changes({
+        from: 0, to: currentDoc.length, insert: code,
+      })});
     }
     const currentRange = editor.state.selection.main;
-    if (currentRange.from !== cursor[0] && currentRange.to !== cursor[1]) {
-      const localCursor = Math.min(cursor[0], currentDoc.length);
-      const localCursorTo = Math.min(cursor[1], currentDoc.length);
+    const newDoc = textToString(editor.state.doc);
+    if (currentRange.from !== cursor[0] || currentRange.to !== cursor[1]) {
+      const localCursor = Math.min(cursor[0], newDoc.length);
+      const localCursorTo = Math.min(cursor[1], newDoc.length);
       editor.dispatch({selection: EditorSelection.single(localCursor, localCursorTo)});
     }
   }, [code, cursor, editor]);
@@ -70,7 +73,7 @@ const Home: NextPage = () => {
       });
       const selection = transaction.newSelection;
       const range = selection.main;
-      //if (cursor[0] !== range.from && cursor[1] !== range.to) {
+      //if (cursor[0] !== range.from || cursor[1] !== range.to) {
       setCursor(cursorKey, range.from, range.to, revision, clientRevision);
       //}
     }
