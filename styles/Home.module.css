@@ -110,3 +110,7 @@
     transform: rotate(360deg);
   }
 }
+
+.editor {
+  width: 100%;
+}
