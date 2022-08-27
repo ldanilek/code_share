@@ -23,6 +23,7 @@ export default mutation(
     db.patch(cursor._id, {
         parentRevision: revision,
         position,
+        toPosition,
         clientRevision,
     });
   }
