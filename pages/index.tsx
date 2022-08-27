@@ -9,6 +9,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { EditorView, ViewUpdate } from '@codemirror/view';
 import { Text, EditorSelection, Transaction } from '@codemirror/state';
 import { INITIAL_CODE, mergeChange } from '../merge'
+import compressCode from '../convex/compressCode'
 
 const Home: NextPage = () => {
   const code = useQuery('getCode') ?? INITIAL_CODE;
@@ -16,7 +17,15 @@ const Home: NextPage = () => {
   const [cursorKey, _] = useState(Math.random().toString());
   const cursor = useQuery('getCursor', cursorKey) ?? [0, 0];
   const [activeTime, setActiveTime] = useState(new Date().getTime());
-  const countActive = useQuery('countActive', activeTime) ?? 1;
+  const countActive = useQuery('countActive', activeTime);
+  const [staleCountActive, setStaleCountActive] = useState(1);
+  const compressCode = useMutation('compressCode');
+  useEffect(() => {
+    if (countActive !== undefined) {
+      setStaleCountActive(countActive);
+    }
+  }, [countActive])
+  const [lastCompressTime, setLastCompressTime] = useState(new Date().getTime());
   const setCursor = useMutation('setCursor').withOptimisticUpdate(
     (localStore, cursorKey, position, toPosition, revision, clientRevision) => {
       localStore.setQuery('getCursor', [cursorKey], [position, toPosition]);
@@ -93,6 +102,13 @@ const Home: NextPage = () => {
       setActiveTime(new Date().getTime());
     }, 5 * 1000);
   }, [activeTime]);
+  /// Compress periodically.
+  useEffect(() => {
+    compressCode();
+    setTimeout(() => {
+      setLastCompressTime(new Date().getTime());
+    }, 10 * 60 * 1000);
+  }, [lastCompressTime]);
 
   return (
     <div className={styles.container}>
@@ -104,7 +120,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <p>Magic Code Editor</p>
-        <p>{countActive} current editor{countActive === 1 ? '' : 's'}</p>
+        <p>{staleCountActive} current editor{staleCountActive === 1 ? '' : 's'}</p>
         <CodeMirror
           className={styles.editor}
           height="400px"

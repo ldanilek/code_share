@@ -81,6 +81,21 @@ export const offsetForCursor = (
 export const lastRevision = async (
     db: DatabaseReader,
 ): Promise<number> => {
-    const lastChange = await db.table('changes').order('desc').first();
+    const lastChange = await db.table('changes').index('by_revision').range(q => q).order('desc').first();
     return lastChange ? lastChange.revision : 0;
+};
+
+export const getCode = (
+  changes: Document<'changes'>[],
+): string => {
+  let code = INITIAL_CODE;
+  for (let change of changes) {
+    code = mergeChange(
+      code, 
+      offsetForChange(change.fromA, change, changes),
+      offsetForChange(change.toA, change, changes), 
+      change.inserted,
+    );
+  }
+  return code;
 };

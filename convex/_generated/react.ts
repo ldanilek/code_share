@@ -9,6 +9,7 @@
  * @module
  */
 
+import type compressCode from "../compressCode";
 import type countActive from "../countActive";
 import type getCode from "../getCode";
 import type getCursor from "../getCursor";
@@ -35,6 +36,7 @@ export type ConvexAPI = {
     getRevision: ClientQuery<typeof getRevision>;
   };
   mutations: {
+    compressCode: ClientMutation<typeof compressCode>;
     setCursor: ClientMutation<typeof setCursor>;
     typeCode: ClientMutation<typeof typeCode>;
   };
